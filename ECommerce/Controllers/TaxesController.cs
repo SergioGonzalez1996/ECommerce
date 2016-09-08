@@ -1,58 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using ECommerce.Models;
 
 namespace ECommerce.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User")]
 
-    public class DepartmentsController : Controller
+    public class TaxesController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
 
-        // GET: Departments
+        // GET: Taxes
         public ActionResult Index()
         {
-            return View(db.Departments.ToList());
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var taxes = db.Taxes.Where(t => t.CompanyId == user.CompanyId);
+            return View(taxes.ToList());
         }
 
-        // GET: Departments/Details/5
+        // GET: Taxes/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Tax tax = db.Taxes.Find(id);
+            if (tax == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(tax);
         }
 
-        // GET: Departments/Create
+        // GET: Taxes/Create
         public ActionResult Create()
         {
-            return View();
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var tax = new Tax { CompanyId = user.CompanyId, };
+            return View(tax);
         }
 
-        // POST: Departments/Create
+        // POST: Taxes/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "DepartmentId,Name")] Department department)
+        public ActionResult Create(Tax tax)
         {
             if (ModelState.IsValid)
             {
-                db.Departments.Add(department);
+                db.Taxes.Add(tax);
                 try
                 {
                     db.SaveChanges();
@@ -70,35 +80,34 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-
-            return View(department);
+            return View(tax);
         }
 
-        // GET: Departments/Edit/5
+        // GET: Taxes/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Tax tax = db.Taxes.Find(id);
+            if (tax == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(tax);
         }
 
-        // POST: Departments/Edit/5
+        // POST: Taxes/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "DepartmentId,Name")] Department department)
+        public ActionResult Edit(Tax tax)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(department).State = EntityState.Modified;
+                db.Entry(tax).State = EntityState.Modified;
                 try
                 {
                     db.SaveChanges();
@@ -108,7 +117,7 @@ namespace ECommerce.Controllers
                 {
                     if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
                     {
-                        ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
+                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
                     }
                     else
                     {
@@ -116,31 +125,31 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-            return View(department);
+            return View(tax);
         }
 
-        // GET: Departments/Delete/5
+        // GET: Taxes/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Tax tax = db.Taxes.Find(id);
+            if (tax == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(tax);
         }
 
-        // POST: Departments/Delete/5
+        // POST: Taxes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Department department = db.Departments.Find(id);
-            db.Departments.Remove(department);
+            Tax tax = db.Taxes.Find(id);
+            db.Taxes.Remove(tax);
             try
             {
                 db.SaveChanges();
@@ -148,16 +157,9 @@ namespace ECommerce.Controllers
             }
             catch (Exception ex)
             {
-                if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("REFERENCE"))
-                {
-                    ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, ex.Message);
-                }
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
-            return View(department);
+            return View(tax);
         }
 
         protected override void Dispose(bool disposing)

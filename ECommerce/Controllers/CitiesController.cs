@@ -11,6 +11,8 @@ using ECommerce.Classes;
 
 namespace ECommerce.Controllers
 {
+    [Authorize(Roles = "Admin")]
+
     public class CitiesController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
@@ -63,7 +65,7 @@ namespace ECommerce.Controllers
                 {
                     if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
                     {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value in the same department.");
+                        ModelState.AddModelError(string.Empty, "There are a city with the same name in the same department.");
                     }
                     else
                     {
@@ -109,7 +111,14 @@ namespace ECommerce.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, ex.Message);
+                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
+                    {
+                        ModelState.AddModelError(string.Empty, "There are a city with the same name in the same department.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, ex.Message);
+                    }
                 }
             }
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name");

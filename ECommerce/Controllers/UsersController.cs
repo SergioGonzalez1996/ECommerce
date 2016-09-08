@@ -11,6 +11,8 @@ using ECommerce.Classes;
 
 namespace ECommerce.Controllers
 {
+    [Authorize(Roles = "Admin")]
+
     public class UsersController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
@@ -135,6 +137,14 @@ namespace ECommerce.Controllers
                     }
                 }
 
+                var db2 = new ECommerceContext();
+                var currentUser = db2.Users.Find(user.UserId);
+                if (currentUser.UserName != user.UserName)
+                {
+                    UsersHelper.UpdateUserName(currentUser.UserName, user.UserName);
+                }
+                db2.Dispose();
+
                 db.Entry(user).State = EntityState.Modified;
                 try
                 {
@@ -166,7 +176,7 @@ namespace ECommerce.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            User user = db.Users.Find(id);
+            var user = db.Users.Find(id);
             if (user == null)
             {
                 return HttpNotFound();
@@ -179,11 +189,12 @@ namespace ECommerce.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            User user = db.Users.Find(id);
+            var user = db.Users.Find(id);
             db.Users.Remove(user);
             try
             {
                 db.SaveChanges();
+                UsersHelper.DeleteUser(user.UserName);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)

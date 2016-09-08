@@ -10,49 +10,61 @@ using ECommerce.Models;
 
 namespace ECommerce.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "User")]
 
-    public class DepartmentsController : Controller
+    public class CategoriesController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
 
-        // GET: Departments
+        // GET: Categories
         public ActionResult Index()
         {
-            return View(db.Departments.ToList());
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var categories = db.Categories.Where(c => c.CompanyId == user.CompanyId);
+            return View(categories.ToList());
         }
 
-        // GET: Departments/Details/5
+        // GET: Categories/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Category category = db.Categories.Find(id);
+            if (category == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(category);
         }
 
-        // GET: Departments/Create
+        // GET: Categories/Create
         public ActionResult Create()
         {
-            return View();
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var category = new Category { CompanyId = user.CompanyId, };
+            return View(category);
         }
 
-        // POST: Departments/Create
+        // POST: Categories/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "DepartmentId,Name")] Department department)
+        public ActionResult Create(Category category)
         {
             if (ModelState.IsValid)
             {
-                db.Departments.Add(department);
+                db.Categories.Add(category);
                 try
                 {
                     db.SaveChanges();
@@ -70,35 +82,34 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-
-            return View(department);
+            return View(category);
         }
 
-        // GET: Departments/Edit/5
+        // GET: Categories/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Category category = db.Categories.Find(id);
+            if (category == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(category);
         }
 
-        // POST: Departments/Edit/5
+        // POST: Categories/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "DepartmentId,Name")] Department department)
+        public ActionResult Edit(Category category)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(department).State = EntityState.Modified;
+                db.Entry(category).State = EntityState.Modified;
                 try
                 {
                     db.SaveChanges();
@@ -108,7 +119,7 @@ namespace ECommerce.Controllers
                 {
                     if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
                     {
-                        ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
+                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
                     }
                     else
                     {
@@ -116,31 +127,31 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-            return View(department);
+            return View(category);
         }
 
-        // GET: Departments/Delete/5
+        // GET: Categories/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Category category = db.Categories.Find(id);
+            if (category == null)
             {
                 return HttpNotFound();
             }
-            return View(department);
+            return View(category);
         }
 
-        // POST: Departments/Delete/5
+        // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Department department = db.Departments.Find(id);
-            db.Departments.Remove(department);
+            Category category = db.Categories.Find(id);
+            db.Categories.Remove(category);
             try
             {
                 db.SaveChanges();
@@ -148,16 +159,9 @@ namespace ECommerce.Controllers
             }
             catch (Exception ex)
             {
-                if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("REFERENCE"))
-                {
-                    ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, ex.Message);
-                }
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
-            return View(department);
+            return View(category);
         }
 
         protected override void Dispose(bool disposing)
