@@ -57,6 +57,7 @@ namespace ECommerce.Models
         public string FullName { get { return string.Format("{0} {1}", FirstName, LastName); } }
 
         [NotMapped]
+        [Display(Name = "Photo")]
         public HttpPostedFileBase PhotoFile { get; set; }
 
         public virtual Department Department { get; set; }

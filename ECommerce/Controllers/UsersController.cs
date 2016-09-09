@@ -69,8 +69,7 @@ namespace ECommerce.Controllers
                         var response = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
                         if (response)
                         {
-                            var pic = string.Format("{0}/{1}", folder, file);
-                            user.Photo = pic;
+                            user.Photo = string.Format("{0}/{1}", folder, file); ;
                             db.Entry(user).State = EntityState.Modified;
                             db.SaveChanges();
                         }
@@ -126,14 +125,12 @@ namespace ECommerce.Controllers
             {
                 if (user.PhotoFile != null)
                 {
-                    var pic = string.Empty;
                     var folder = "~/Content/Users";
                     var file = string.Format("{0}.jpg", user.UserId);
                     var response = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
                     if (response)
                     {
-                        pic = string.Format("{0}/{1}", folder, file);
-                        user.Photo = pic;
+                        user.Photo = string.Format("{0}/{1}", folder, file); ;
                     }
                 }
 

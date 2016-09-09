@@ -11,75 +11,72 @@ using ECommerce.Classes;
 
 namespace ECommerce.Controllers
 {
-    [Authorize(Roles = "Admin")]
-
-    public class CompaniesController : Controller
+    [Authorize(Roles = "User")]
+    public class WarehousesController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
 
-        // GET: Companies
+        // GET: Warehouses
         public ActionResult Index()
         {
-            var companies = db.Companies.Include(c => c.City).Include(c => c.Department);
-            return View(companies.ToList());
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var warehouses = db.Warehouses.Where(w => w.CompanyId == user.CompanyId).Include(w => w.City).Include(w => w.Department);
+            return View(warehouses.ToList());
         }
 
-        // GET: Companies/Details/5
+        // GET: Warehouses/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Company company = db.Companies.Find(id);
-            if (company == null)
+            var warehouse = db.Warehouses.Find(id);
+            if (warehouse == null)
             {
                 return HttpNotFound();
             }
-            return View(company);
+            return View(warehouse);
         }
 
-        // GET: Companies/Create
+        // GET: Warehouses/Create
         public ActionResult Create()
         {
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name");
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name");
-            return View();
+            var warehouse = new Warehouse { CompanyId = user.CompanyId };
+            return View(warehouse);
         }
 
-        // POST: Companies/Create
+        // POST: Warehouses/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Company company)
+        public ActionResult Create(Warehouse warehouse)
         {
             if (ModelState.IsValid)
             {
-                db.Companies.Add(company);
+                db.Warehouses.Add(warehouse);
                 try
                 {
                     db.SaveChanges();
-                    if (company.LogoFile != null)
-                    {
-                        var folder = "~/Content/Logos";
-                        var file = string.Format("{0}.jpg", company.CompanyId);
-                        var response = FilesHelper.UploadPhoto(company.LogoFile, folder, file);
-                        if (response)
-                        {
-                            company.Logo = string.Format("{0}/{1}", folder, file); ;
-                            db.Entry(company).State = EntityState.Modified;
-                            db.SaveChanges();
-                        }
-                       
-                    }
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
                     {
-                        ModelState.AddModelError(string.Empty, "There are a company with the same name.");
+                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
                     }
                     else
                     {
@@ -88,49 +85,38 @@ namespace ECommerce.Controllers
                 }
             }
 
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", company.CityId);
-            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", company.DepartmentId);
-            return View(company);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
+            return View(warehouse);
         }
 
-        // GET: Companies/Edit/5
+        // GET: Warehouses/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Company company = db.Companies.Find(id);
-            if (company == null)
+            var warehouse = db.Warehouses.Find(id);
+            if (warehouse == null)
             {
                 return HttpNotFound();
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", company.CityId);
-            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", company.DepartmentId);
-            return View(company);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
+            return View(warehouse);
         }
 
-        // POST: Companies/Edit/5
+        // POST: Warehouses/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Company company)
+        public ActionResult Edit(Warehouse warehouse)
         {
             if (ModelState.IsValid)
             {
-                if (company.LogoFile != null)
-                {
-                    var folder = "~/Content/Logos";
-                    var file = string.Format("{0}.jpg", company.CompanyId);
-                    var response = FilesHelper.UploadPhoto(company.LogoFile, folder, file);
-                    if (response)
-                    {
-                        company.Logo = string.Format("{0}/{1}", folder, file); ;
-                    }
-                }
-                
-                db.Entry(company).State = EntityState.Modified;
+                db.Entry(warehouse).State = EntityState.Modified;
                 try
                 {
                     db.SaveChanges();
@@ -140,7 +126,7 @@ namespace ECommerce.Controllers
                 {
                     if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
                     {
-                        ModelState.AddModelError(string.Empty, "There are a company with the same name.");
+                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
                     }
                     else
                     {
@@ -148,33 +134,35 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", company.CityId);
-            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", company.DepartmentId);
-            return View(company);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
+            return View(warehouse);
         }
 
-        // GET: Companies/Delete/5
+        // GET: Warehouses/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Company company = db.Companies.Find(id);
-            if (company == null)
+
+            var warehouse = db.Warehouses.Find(id);
+
+            if (warehouse == null)
             {
                 return HttpNotFound();
             }
-            return View(company);
+            return View(warehouse);
         }
 
-        // POST: Companies/Delete/5
+        // POST: Warehouses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Company company = db.Companies.Find(id);
-            db.Companies.Remove(company);
+            Warehouse warehouse = db.Warehouses.Find(id);
+            db.Warehouses.Remove(warehouse);
             try
             {
                 db.SaveChanges();
@@ -184,7 +172,7 @@ namespace ECommerce.Controllers
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
             }
-            return View(company);
+            return View(warehouse);
         }
 
         public JsonResult GetCities(int departmentId)
