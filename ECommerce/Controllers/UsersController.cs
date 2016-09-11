@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
@@ -42,7 +39,7 @@ namespace ECommerce.Controllers
         // GET: Users/Create
         public ActionResult Create()
         {
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name");
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(0), "CityId", "Name");
             ViewBag.CompanyId = new SelectList(CombosHelper.GetCompanies(), "CompanyId", "Name");
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name");
             return View();
@@ -58,39 +55,31 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Users.Add(user);
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     UsersHelper.CreateUserASP(user.UserName, "User");
                     if (user.PhotoFile != null)
                     {
                         var folder = "~/Content/Users";
                         var file = string.Format("{0}.jpg", user.UserId);
-                        var response = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
-                        if (response)
+                        var response2 = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
+                        if (response2)
                         {
                             user.Photo = string.Format("{0}/{1}", folder, file); ;
                             db.Entry(user).State = EntityState.Modified;
                             db.SaveChanges();
                         }
-
                     }
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a user with the same E-mail.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
 
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", user.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(user.DepartmentId), "CityId", "Name", user.CityId);
             ViewBag.CompanyId = new SelectList(CombosHelper.GetCompanies(), "CompanyId", "Name", user.CompanyId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", user.DepartmentId);
             return View(user);
@@ -108,7 +97,7 @@ namespace ECommerce.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", user.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(user.DepartmentId), "CityId", "Name", user.CityId);
             ViewBag.CompanyId = new SelectList(CombosHelper.GetCompanies(), "CompanyId", "Name", user.CompanyId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", user.DepartmentId);
             return View(user);
@@ -123,44 +112,36 @@ namespace ECommerce.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (user.PhotoFile != null)
-                {
-                    var folder = "~/Content/Users";
-                    var file = string.Format("{0}.jpg", user.UserId);
-                    var response = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
-                    if (response)
-                    {
-                        user.Photo = string.Format("{0}/{1}", folder, file); ;
-                    }
-                }
-
-                var db2 = new ECommerceContext();
-                var currentUser = db2.Users.Find(user.UserId);
-                if (currentUser.UserName != user.UserName)
-                {
-                    UsersHelper.UpdateUserName(currentUser.UserName, user.UserName);
-                }
-                db2.Dispose();
-
+                
                 db.Entry(user).State = EntityState.Modified;
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
+                    if (user.PhotoFile != null)
+                    {
+                        var folder = "~/Content/Users";
+                        var file = string.Format("{0}.jpg", user.UserId);
+                        var response2 = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
+                        if (response2)
+                        {
+                            user.Photo = string.Format("{0}/{1}", folder, file); ;
+                        }
+                    }
+                    var db2 = new ECommerceContext();
+                    var currentUser = db2.Users.Find(user.UserId);
+                    if (currentUser.UserName != user.UserName)
+                    {
+                        UsersHelper.UpdateUserName(currentUser.UserName, user.UserName);
+                    }
+                    db2.Dispose();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a user with the same E-Mail.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", user.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(user.DepartmentId), "CityId", "Name", user.CityId);
             ViewBag.CompanyId = new SelectList(CombosHelper.GetCompanies(), "CompanyId", "Name", user.CompanyId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", user.DepartmentId);
             return View(user);
@@ -188,24 +169,17 @@ namespace ECommerce.Controllers
         {
             var user = db.Users.Find(id);
             db.Users.Remove(user);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (response.Succeeded)
             {
-                db.SaveChanges();
                 UsersHelper.DeleteUser(user.UserName);
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            else
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, response.Message);
             }
             return View(user);
-        }
-
-        public JsonResult GetCities(int departmentId)
-        {
-            db.Configuration.ProxyCreationEnabled = false;
-            var cities = db.Cities.Where(c => c.DepartmentId == departmentId);
-            return Json(cities);
         }
 
         protected override void Dispose(bool disposing)

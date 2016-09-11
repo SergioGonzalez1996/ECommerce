@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using ECommerce.Models;
+using ECommerce.Classes;
 
 namespace ECommerce.Controllers
 {
@@ -53,21 +50,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Departments.Add(department);
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
 
@@ -99,21 +89,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Entry(department).State = EntityState.Modified;
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
             return View(department);
@@ -141,21 +124,14 @@ namespace ECommerce.Controllers
         {
             Department department = db.Departments.Find(id);
             db.Departments.Remove(department);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (response.Succeeded)
             {
-                db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            else
             {
-                if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("REFERENCE"))
-                {
-                    ModelState.AddModelError(string.Empty, "The record can't be deleted because it has related records.");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, ex.Message);
-                }
+                ModelState.AddModelError(string.Empty, response.Message);
             }
             return View(department);
         }

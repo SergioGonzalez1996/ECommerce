@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -71,15 +70,15 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Products.Add(product);
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     if (product.ImageFile != null)
                     {
                         var folder = "~/Content/Products";
                         var file = string.Format("{0}.jpg", product.ProductId);
-                        var response = FilesHelper.UploadPhoto(product.ImageFile, folder, file);
-                        if (response)
+                        var response2 = FilesHelper.UploadPhoto(product.ImageFile, folder, file);
+                        if (response2)
                         {
                             product.Image = string.Format("{0}/{1}", folder, file);
                             db.Entry(product).State = EntityState.Modified;
@@ -89,16 +88,9 @@ namespace ECommerce.Controllers
                     }
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
 
@@ -147,29 +139,22 @@ namespace ECommerce.Controllers
                 {
                     var folder = "~/Content/Products";
                     var file = string.Format("{0}.jpg", product.ProductId);
-                    var response = FilesHelper.UploadPhoto(product.ImageFile, folder, file);
-                    if (response)
+                    var response2 = FilesHelper.UploadPhoto(product.ImageFile, folder, file);
+                    if (response2)
                     {
                         product.Image = string.Format("{0}/{1}", folder, file); ;
                     }
                 }
 
                 db.Entry(product).State = EntityState.Modified;
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
             ViewBag.CategoryId = new SelectList(CombosHelper.GetCategories(user.CompanyId), "CategoryId", "Description", product.CategoryId);
@@ -199,16 +184,16 @@ namespace ECommerce.Controllers
         {
             Product product = db.Products.Find(id);
             db.Products.Remove(product);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (response.Succeeded)
             {
-                db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            else
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View(product);
+                ModelState.AddModelError(string.Empty, response.Message);
             }
+            return View(product);
         }
 
         protected override void Dispose(bool disposing)

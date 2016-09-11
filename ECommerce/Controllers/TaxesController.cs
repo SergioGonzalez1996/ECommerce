@@ -1,10 +1,10 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
+using ECommerce.Classes;
 
 namespace ECommerce.Controllers
 {
@@ -63,21 +63,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Taxes.Add(tax);
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
             return View(tax);
@@ -108,21 +101,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Entry(tax).State = EntityState.Modified;
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex.InnerException != null && ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message.Contains("_Index"))
-                    {
-                        ModelState.AddModelError(string.Empty, "There are a record with the same value.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, ex.Message);
-                    }
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
             return View(tax);
@@ -150,14 +136,14 @@ namespace ECommerce.Controllers
         {
             Tax tax = db.Taxes.Find(id);
             db.Taxes.Remove(tax);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (response.Succeeded)
             {
-                db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            else
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, response.Message);
             }
             return View(tax);
         }

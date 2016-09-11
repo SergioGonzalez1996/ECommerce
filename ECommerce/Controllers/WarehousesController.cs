@@ -51,7 +51,7 @@ namespace ECommerce.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name");
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(0), "CityId", "Name");
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name");
             var warehouse = new Warehouse { CompanyId = user.CompanyId };
             return View(warehouse);
@@ -85,7 +85,7 @@ namespace ECommerce.Controllers
                 }
             }
 
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(warehouse.DepartmentId), "CityId", "Name", warehouse.CityId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
             return View(warehouse);
         }
@@ -102,7 +102,7 @@ namespace ECommerce.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(warehouse.DepartmentId), "CityId", "Name", warehouse.CityId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
             return View(warehouse);
         }
@@ -134,7 +134,7 @@ namespace ECommerce.Controllers
                     }
                 }
             }
-            ViewBag.CityId = new SelectList(CombosHelper.GetCities(), "CityId", "Name", warehouse.CityId);
+            ViewBag.CityId = new SelectList(CombosHelper.GetCities(warehouse.DepartmentId), "CityId", "Name", warehouse.CityId);
             ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", warehouse.DepartmentId);
             return View(warehouse);
         }
@@ -173,13 +173,6 @@ namespace ECommerce.Controllers
                 ModelState.AddModelError(string.Empty, ex.Message);
             }
             return View(warehouse);
-        }
-
-        public JsonResult GetCities(int departmentId)
-        {
-            db.Configuration.ProxyCreationEnabled = false;
-            var cities = db.Cities.Where(c => c.DepartmentId == departmentId);
-            return Json(cities);
         }
 
         protected override void Dispose(bool disposing)

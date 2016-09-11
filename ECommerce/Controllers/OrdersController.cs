@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
@@ -84,18 +82,15 @@ namespace ECommerce.Controllers
             }
            
             ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "ProductId", "Description");
-            return View();
+            return PartialView();
         }
 
         public ActionResult AddProduct()
         {
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            if (user == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
             ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "ProductId", "Description");
-            return View();
+            return PartialView();
+
         }
 
 
@@ -135,7 +130,10 @@ namespace ECommerce.Controllers
                 return RedirectToAction("Index", "Home");
             }
             ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName");
-            var view = new NewOrderView { Date = DateTime.Now, Details = db.OrderDetailTmps.Where(odt => odt.UserName == User.Identity.Name).ToList(), };
+            var view = new NewOrderView {
+                Date = DateTime.Now,
+                Details = db.OrderDetailTmps.Where(odt => odt.UserName == User.Identity.Name).ToList(),
+            };
             return View(view);
         }
 
@@ -144,28 +142,25 @@ namespace ECommerce.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Order order)
+        public ActionResult Create(NewOrderView view)
         {
             if (ModelState.IsValid)
-            {
-                db.Orders.Add(order);
-                try
+            { 
+                var response = MovementsHelper.NewOrder(view, User.Identity.Name);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex.Message);
-                }
+                ModelState.AddModelError(string.Empty, response.Message);  
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.CustomerId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "CustomerId", "UserName", order.CustomerId);
-            return View(order);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "CustomerId", "FullName");
+            view.Details = db.OrderDetailTmps.Where(odt => odt.UserName == User.Identity.Name).ToList();
+            return View(view);
         }
 
         // GET: Orders/Edit/5
@@ -199,14 +194,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 db.Entry(order).State = EntityState.Modified;
-                try
+                var response = DBHelper.SaveChanges(db);
+                if (response.Succeeded)
                 {
-                    db.SaveChanges();
                     return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    ModelState.AddModelError(string.Empty, ex.Message);
+                    ModelState.AddModelError(string.Empty, response.Message);
                 }
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
@@ -240,14 +235,14 @@ namespace ECommerce.Controllers
         {
             var order = db.Orders.Find(id);
             db.Orders.Remove(order);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (response.Succeeded)
             {
-                db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            else
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, response.Message);
             }
             return View(order);
         }
