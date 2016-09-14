@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Web;
 
 namespace ECommerce.Models
 {
@@ -10,14 +11,8 @@ namespace ECommerce.Models
         public int CustomerId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
-        [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
-        [Display(Name = "Company")]
-        public int CompanyId { get; set; }
-
-        [Required(ErrorMessage = "The field {0} is required")]
         [MaxLength(256, ErrorMessage = "The filed {0} must be maximun {1} characters length")]
         [Display(Name = "E-Mail")]
-        [Index("Customer_UserName_Index", IsUnique = true)]
         [DataType(DataType.EmailAddress)]
         public string UserName { get; set; }
 
@@ -40,6 +35,9 @@ namespace ECommerce.Models
         [MaxLength(100, ErrorMessage = "The filed {0} must be maximun {1} characters length")]
         public string Address { get; set; }
 
+        [DataType(DataType.ImageUrl)]
+        public string Photo { get; set; }
+
         [Required(ErrorMessage = "The field {0} is required")]
         [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
         [Display(Name = "Department")]
@@ -53,11 +51,15 @@ namespace ECommerce.Models
         [Display(Name = "Customer")]
         public string FullName { get { return string.Format("{0} {1}", FirstName, LastName); } }
 
+        [NotMapped]
+        [Display(Name = "Photo")]
+        public HttpPostedFileBase PhotoFile { get; set; }
+
         public virtual Department Department { get; set; }
 
         public virtual City City { get; set; }
 
-        public virtual Company Company { get; set; }
+        public virtual ICollection<CompanyCustomer> CompanyCustomers { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
 

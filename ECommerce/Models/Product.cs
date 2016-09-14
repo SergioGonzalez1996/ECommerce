@@ -57,7 +57,7 @@ namespace ECommerce.Models
         public string Remarks { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = false)]
-        public double Stock { get { return Inventories.Sum(i => i.Stock); } }
+        public double Stock { get { return Inventories == null ?0: Inventories.Sum(i => i.Stock); } }
 
         public virtual Company Company { get; set; }
 

@@ -4,6 +4,7 @@ using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
+using PagedList;
 
 namespace ECommerce.Controllers
 {
@@ -14,10 +15,11 @@ namespace ECommerce.Controllers
         private ECommerceContext db = new ECommerceContext();
 
         // GET: Companies
-        public ActionResult Index()
+        public ActionResult Index(int? page = null)
         {
-            var companies = db.Companies.Include(c => c.City).Include(c => c.Department);
-            return View(companies.ToList());
+            page = (page ?? 1);
+            var companies = db.Companies.Include(c => c.City).Include(c => c.Department).OrderBy(c => c.Name);
+            return View(companies.ToPagedList((int)page, 10));
         }
 
         // GET: Companies/Details/5

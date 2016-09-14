@@ -65,8 +65,17 @@
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.Image)
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="@Url.Content(Model.Image)" alt="Image" style="width:250px;height:250px;max-width: 100%; height: auto;" />
+            }
+            else
+            {
+                <img src="@Url.Content("~/Content/Products/0.png")" alt="Image" style="width:250px;height:250px;max-width: 100%; height: auto;" />
+            }
         </dd>
+
+
 
         <dt>
             @Html.DisplayNameFor(model => model.Remarks)
@@ -82,7 +91,7 @@
         @Html.AntiForgeryToken()
 
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-primary" />
+            <input type="submit" value="Delete" class="btn btn-danger" />
             @Html.ActionLink("Back to List", "Index", new { }, new { @class = "btn btn-success" })
         </div>
     }

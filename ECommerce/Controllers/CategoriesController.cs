@@ -5,6 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
+using PagedList;
 
 namespace ECommerce.Controllers
 {
@@ -15,15 +16,16 @@ namespace ECommerce.Controllers
         private ECommerceContext db = new ECommerceContext();
 
         // GET: Categories
-        public ActionResult Index()
+        public ActionResult Index(int? page = null)
         {
+            page = (page ?? 1);
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
-            var categories = db.Categories.Where(c => c.CompanyId == user.CompanyId);
-            return View(categories.ToList());
+            var categories = db.Categories.Where(c => c.CompanyId == user.CompanyId).OrderBy(c => c.Description);
+            return View(categories.ToPagedList((int)page, 10));
         }
 
         // GET: Categories/Details/5

@@ -1,4 +1,5 @@
-﻿@model IEnumerable<ECommerce.Models.User>
+﻿@model PagedList.IPagedList<ECommerce.Models.User>
+@using PagedList.Mvc
 
 @{
     ViewBag.Title = "Users";
@@ -12,28 +13,28 @@
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.City.Name)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().City.Name)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Company.Name)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Company.Name)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Department.Name)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Department.Name)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.UserName)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().UserName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.FullName)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().FullName)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Phone)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Phone)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Adress)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Adress)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Photo)
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Photo)
         </th>
         <th></th>
     </tr>
@@ -80,3 +81,12 @@
 }
 
 </table>
+
+Page: @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber), of: @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new
+{
+    page,
+    sortOrder =
+    ViewBag.CurrentSort,
+    currentFilter = ViewBag.CurrentFilter
+}))

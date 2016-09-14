@@ -6,6 +6,7 @@ using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
+using PagedList;
 
 namespace ECommerce.Controllers
 {
@@ -88,22 +89,23 @@ namespace ECommerce.Controllers
         public ActionResult AddProduct()
         {
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "ProductId", "Description");
+            ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId,true), "ProductId", "Description");
             return PartialView();
 
         }
 
 
         // GET: Orders
-        public ActionResult Index()
+        public ActionResult Index(int? page = null)
         {
+            page = (page ?? 1);
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
             var orders = db.Orders.Where(o => o.CompanyId == user.CompanyId).Include(o => o.Customer).Include(o => o.State);
-            return View(orders.ToList());
+            return View(orders.OrderBy(o => o.Customer.FirstName).ThenBy(o => o.Customer.LastName).ToPagedList((int)page, 10));
         }
 
         // GET: Orders/Details/5
@@ -158,7 +160,7 @@ namespace ECommerce.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.CustomerId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "CustomerId", "FullName");
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName");
             view.Details = db.OrderDetailTmps.Where(odt => odt.UserName == User.Identity.Name).ToList();
             return View(view);
         }
@@ -180,7 +182,7 @@ namespace ECommerce.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.CustomerId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "CustomerId", "UserName", order.CustomerId);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName", order.CustomerId);
             return View(order);
         }
 
@@ -209,7 +211,7 @@ namespace ECommerce.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            ViewBag.CustomerId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "CustomerId", "UserName", order.CustomerId);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "UserName", order.CustomerId);
             return View(order);
         }
 

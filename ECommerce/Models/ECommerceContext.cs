@@ -36,6 +36,8 @@ namespace ECommerce.Models
 
         public DbSet<Customer> Customers { get; set; }
 
+        public DbSet<CompanyCustomer> CompanyCustomers { get; set; }
+
         public DbSet<State> States { get; set; }
 
         public DbSet<Order> Orders { get; set; }

@@ -21,14 +21,6 @@
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.Company.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Company.Name)
-        </dd>
-
-        <dt>
             @Html.DisplayNameFor(model => model.Department.Name)
         </dt>
 
@@ -76,13 +68,28 @@
             @Html.DisplayFor(model => model.Address)
         </dd>
 
+        <dt>
+            @Html.DisplayNameFor(model => model.Photo)
+        </dt>
+
+        <dd>
+            @if (!string.IsNullOrEmpty(Model.Photo))
+            {
+                <img src="@Url.Content(Model.Photo)" alt="Image" style="width:250px;height:250px;max-width: 100%; height: auto;" />
+            }
+            else
+            {
+                <img src="@Url.Content("~/Content/Customers/0.png")" alt="Image" style="width:250px;height:250px;max-width: 100%; height: auto;" />
+            }
+        </dd>
+
     </dl>
 
     @using (Html.BeginForm()) {
         @Html.AntiForgeryToken()
 
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-primary" />
+            <input type="submit" value="Delete" class="btn btn-danger" />
             @Html.ActionLink("Back to List", "Index", new { }, new { @class = "btn btn-success" })
         </div>
     }

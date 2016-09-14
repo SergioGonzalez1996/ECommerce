@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
+using PagedList;
 
 namespace ECommerce.Controllers
 {
@@ -17,15 +16,16 @@ namespace ECommerce.Controllers
         private ECommerceContext db = new ECommerceContext();
 
         // GET: Warehouses
-        public ActionResult Index()
+        public ActionResult Index(int? page = null)
         {
+            page = (page ?? 1);
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
             var warehouses = db.Warehouses.Where(w => w.CompanyId == user.CompanyId).Include(w => w.City).Include(w => w.Department);
-            return View(warehouses.ToList());
+            return View(warehouses.OrderBy(w => w.Department.Name).ThenBy(w => w.City.Name).ThenBy(w => w.Name).ToPagedList((int)page, 10));
         }
 
         // GET: Warehouses/Details/5

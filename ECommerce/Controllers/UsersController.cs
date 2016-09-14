@@ -5,6 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
 using ECommerce.Classes;
+using PagedList;
 
 namespace ECommerce.Controllers
 {
@@ -15,10 +16,11 @@ namespace ECommerce.Controllers
         private ECommerceContext db = new ECommerceContext();
 
         // GET: Users
-        public ActionResult Index()
+        public ActionResult Index(int? page = null)
         {
+            page = (page ?? 1);
             var users = db.Users.Include(u => u.City).Include(u => u.Company).Include(u => u.Department);
-            return View(users.ToList());
+            return View(users.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToPagedList((int)page, 10));
         }
 
         // GET: Users/Details/5
@@ -66,7 +68,7 @@ namespace ECommerce.Controllers
                         var response2 = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
                         if (response2)
                         {
-                            user.Photo = string.Format("{0}/{1}", folder, file); ;
+                            user.Photo = string.Format("{0}/{1}", folder, file); 
                             db.Entry(user).State = EntityState.Modified;
                             db.SaveChanges();
                         }
@@ -124,7 +126,9 @@ namespace ECommerce.Controllers
                         var response2 = FilesHelper.UploadPhoto(user.PhotoFile, folder, file);
                         if (response2)
                         {
-                            user.Photo = string.Format("{0}/{1}", folder, file); ;
+                            user.Photo = string.Format("{0}/{1}", folder, file);
+                            db.Entry(user).State = EntityState.Modified;
+                            db.SaveChanges();
                         }
                     }
                     var db2 = new ECommerceContext();
@@ -172,7 +176,7 @@ namespace ECommerce.Controllers
             var response = DBHelper.SaveChanges(db);
             if (response.Succeeded)
             {
-                UsersHelper.DeleteUser(user.UserName);
+                UsersHelper.DeleteUser(user.UserName, "User");
                 return RedirectToAction("Index");
             }
             else

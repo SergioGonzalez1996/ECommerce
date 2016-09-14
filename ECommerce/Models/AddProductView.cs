@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ECommerce.Models
 {
@@ -10,7 +6,7 @@ namespace ECommerce.Models
     {
         [Required(ErrorMessage = "The field {0} is required")]
         [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
-        [Display(Name = "Product")]
+        [Display(Name = "Product", Prompt = "[Select a product...]")]
         public int ProductId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
