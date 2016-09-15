@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Web;
@@ -55,6 +55,8 @@ namespace ECommerce.Models
         public virtual ICollection<Product> Products { get; set; }
 
         public virtual ICollection<CompanyCustomer> CompanyCustomers { get; set; }
+
+        public virtual ICollection<CompanySupplier> CompanySuppliers { get; set; }
 
         public virtual ICollection<Warehouse> Warehouses { get; set; }
 
