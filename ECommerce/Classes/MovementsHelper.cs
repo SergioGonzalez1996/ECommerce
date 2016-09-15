@@ -1,6 +1,7 @@
 ﻿using ECommerce.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 
@@ -57,6 +58,78 @@ namespace ECommerce.Classes
                 }
             }
         }
+
+        public static Response NewPurchase(NewPurchaseView view, string userName)
+        {
+            using (var transaccion = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = db.Users.Where(u => u.UserName == userName).FirstOrDefault();
+                    var purchase = new Purchase
+                    {
+                        CompanyId = user.CompanyId,
+                        SupplierId = view.SupplierId,
+                        Date = view.Date,
+                        Remarks = view.Remarks,
+                        StateId = DBHelper.GetState("Created", db),
+                        WarehouseId = view.WarehouseId,
+                    };
+
+                    db.Purchases.Add(purchase);
+                    db.SaveChanges();
+
+                    var details = db.PurchaseDetailTmps.Where(pdt => pdt.UserName == userName).ToList();
+
+                    foreach (var detail in details)
+                    {
+                        var purchaseDetail = new PurchaseDetail
+                        {
+                            Description = detail.Description,
+                            PurchaseId = purchase.PurchaseId,
+                            Price = detail.Price,
+                            ProductId = detail.ProductId,
+                            Quantity = detail.Quantity,
+                            TaxRate = detail.TaxRate,
+                        };
+                        db.PurchaseDetails.Add(purchaseDetail);
+                        db.PurchaseDetailTmps.Remove(detail);
+
+
+                        var inventory = db.Inventories.Where(i => i.WarehouseId == view.WarehouseId && i.ProductId == detail.ProductId).FirstOrDefault();
+                        if (inventory == null)
+                        {
+                            //var product = db.Products.Find(view.ProductId);
+                            inventory = new Inventory
+                            {
+                                WarehouseId = view.WarehouseId,
+                                ProductId = detail.ProductId,
+                                Stock = detail.Quantity,
+                            };
+                            db.Inventories.Add(inventory);
+                        }
+                        else
+                        {
+                            inventory.Stock += inventory.Stock + detail.Quantity;
+                            db.Entry(inventory).State = EntityState.Modified;
+                        }
+                        //db.SaveChanges();
+                    }
+                    db.SaveChanges();
+                    transaccion.Commit();
+                    return new Response { Succeeded = true };
+                }
+                catch (Exception ex)
+                {
+                    transaccion.Rollback();
+                    return new Response { Succeeded = false, Message = ex.Message };
+                }
+            }
+        }
+
+
+
+
 
         public void Dispose()
         {

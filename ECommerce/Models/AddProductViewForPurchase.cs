@@ -2,7 +2,7 @@
 
 namespace ECommerce.Models
 {
-    public class AddProductView
+    public class AddProductViewForPurchase
     {
         [Required(ErrorMessage = "The field {0} is required")]
         [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
@@ -11,8 +11,12 @@ namespace ECommerce.Models
 
         [Required(ErrorMessage = "The field {0} is required")]
         [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)]
+        [Range(0, double.MaxValue, ErrorMessage = "You must select a {0} between {1} and {2}")]
+        public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "The field {0} is required")]
+        [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)]
         [Range(0, double.MaxValue, ErrorMessage = "You must enter greather than {1} values in {0}")]
         public double Quantity { get; set; }
-
     }
 }

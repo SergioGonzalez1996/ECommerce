@@ -52,6 +52,13 @@ namespace ECommerce.Classes
             return taxes.OrderBy(d => d.Description).ToList();
         }
 
+        public static List<Warehouse> GetWarehouses(int companyId)
+        {
+            var warehouse = db.Warehouses.Where(w => w.CompanyId == companyId).ToList();
+            warehouse.Add(new Warehouse { WarehouseId = 0, Name = "[Select a warehouse...]" });
+            return warehouse.OrderBy(w => w.Name).ToList();
+        }
+
         public static List<Customer> GetCustomers(int companyId)
         {
             var qry = (from cu in db.Customers
@@ -67,6 +74,24 @@ namespace ECommerce.Classes
             }
             customers.Add(new Customer { CustomerId = 0, FirstName = "[Select a customer...]" });
             return customers.OrderBy(c => c.FirstName).ThenBy(c => c.LastName).ToList();
+        }
+
+
+        public static List<Supplier> GetSuppliers(int companyId)
+        {
+            var qry = (from su in db.Suppliers
+                       join cs in db.CompanySuppliers on su.SupplierId equals cs.SupplierId
+                       join co in db.Companies on cs.CompanyId equals co.CompanyId
+                       where co.CompanyId == companyId
+                       select new { su }).ToList();
+
+            var suppliers = new List<Supplier>();
+            foreach (var item in qry)
+            {
+                suppliers.Add(item.su);
+            }
+            suppliers.Add(new Supplier { SupplierId = 0, FirstName = "[Select a supplier...]" });
+            return suppliers.OrderBy(c => c.FirstName).ThenBy(c => c.LastName).ToList();
         }
 
         public static List<Product> GetProducts(int companyId)

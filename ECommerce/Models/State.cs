@@ -16,5 +16,7 @@ namespace ECommerce.Models
         public string Description { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
+
+        public virtual ICollection<Purchase> Purchases { get; set; }
     }
 }

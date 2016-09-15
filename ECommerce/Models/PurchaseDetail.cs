@@ -1,14 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
 
 namespace ECommerce.Models
 {
-    public class OrderDetail
+    public class PurchaseDetail
     {
         [Key]
-        public int OrderDetailId { get; set; }
+        public int PurchaseDetailId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
-        public int OrderId { get; set; }
+        public int PurchaseId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
         public int ProductId { get; set; }
@@ -34,9 +38,8 @@ namespace ECommerce.Models
         [Range(0, double.MaxValue, ErrorMessage = "You must enter values in {0} between {1} and {2}")]
         public double Quantity { get; set; }
 
-        public virtual Order Order { get; set; }
+        public virtual Purchase Purchase { get; set; }
 
         public virtual Product Product { get; set; }
-
     }
 }

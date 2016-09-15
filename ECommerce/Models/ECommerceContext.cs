@@ -34,11 +34,11 @@ namespace ECommerce.Models
 
         public DbSet<Inventory> Inventories { get; set; }
 
+        public DbSet<State> States { get; set; }
+
         public DbSet<Customer> Customers { get; set; }
 
         public DbSet<CompanyCustomer> CompanyCustomers { get; set; }
-
-        public DbSet<State> States { get; set; }
 
         public DbSet<Order> Orders { get; set; }
 
@@ -49,5 +49,11 @@ namespace ECommerce.Models
         public DbSet<Supplier> Suppliers { get; set; }
 
         public DbSet<CompanySupplier> CompanySuppliers { get; set; }
+
+        public DbSet<Purchase> Purchases { get; set; }
+
+        public DbSet<PurchaseDetail> PurchaseDetails { get; set; }
+
+        public DbSet<PurchaseDetailTmp> PurchaseDetailTmps { get; set; }
     }
 }

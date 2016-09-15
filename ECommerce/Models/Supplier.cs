@@ -61,6 +61,6 @@ namespace ECommerce.Models
 
         public virtual ICollection<CompanySupplier> CompanySuppliers { get; set; }
 
-        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Purchase> Purchases { get; set; }
     }
 }

@@ -2,13 +2,14 @@
 
 namespace ECommerce.Models
 {
-    public class OrderDetail
+    public class PurchaseDetailTmp
     {
         [Key]
-        public int OrderDetailId { get; set; }
+        public int PurchaseDetailTmpId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
-        public int OrderId { get; set; }
+        [MaxLength(256, ErrorMessage = "The filed {0} must be maximun {1} characters length")]
+        public string UserName { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
         public int ProductId { get; set; }
@@ -30,13 +31,13 @@ namespace ECommerce.Models
         public decimal Price { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
-        [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = false)]
         [Range(0, double.MaxValue, ErrorMessage = "You must enter values in {0} between {1} and {2}")]
         public double Quantity { get; set; }
 
-        public virtual Order Order { get; set; }
+        [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)]
+        public decimal Value { get { return Price * (decimal)Quantity; } }
 
         public virtual Product Product { get; set; }
-
     }
 }

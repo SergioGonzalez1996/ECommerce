@@ -70,5 +70,9 @@ namespace ECommerce.Models
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
 
         public virtual ICollection<OrderDetailTmp> OrderDetailTmps { get; set; }
+
+        public virtual ICollection<PurchaseDetail> PurchaseDetail { get; set; }
+
+        public virtual ICollection<PurchaseDetailTmp> PurchaseDetailTmps { get; set; }
     }
 }
