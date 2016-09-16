@@ -49,7 +49,7 @@ namespace ECommerce.Controllers
                     PurchaseDetailTmp = new PurchaseDetailTmp
                     {
                         Description = product.Description,
-                        Price = product.Price,
+                        Price = view.Price,
                         ProductId = product.ProductId,
                         Quantity = view.Quantity,
                         TaxRate = product.Tax.Rate,
