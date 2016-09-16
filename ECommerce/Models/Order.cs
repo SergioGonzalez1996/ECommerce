@@ -39,6 +39,6 @@ namespace ECommerce.Models
 
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
 
-        public virtual ICollection<Sale> Sales { get; set; }
+        //public virtual ICollection<Sale> Sales { get; set; }
     }
 }

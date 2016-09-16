@@ -39,7 +39,10 @@
             @Html.DisplayFor(modelItem => item.Customer.FullName)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.OrderId)
+            @if (!Html.DisplayFor(modelItem => item.OrderId).ToString().Equals("0"))
+            {
+                @Html.DisplayFor(modelItem => item.OrderId)
+            }
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.State.Description)

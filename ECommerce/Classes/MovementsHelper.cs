@@ -161,7 +161,6 @@ namespace ECommerce.Classes
                         Remarks = view.Remarks,
                         StateId = DBHelper.GetState("Created", db),
                         WarehouseId = view.WarehouseId,
-                        
                     };
 
                     if (view.OrderId > 0)
@@ -176,7 +175,8 @@ namespace ECommerce.Classes
                         sale.StateId = DBHelper.GetState("Invoiced", db);
                         orderDetails.StateId = DBHelper.GetState("Invoiced", db);
                         db.Entry(orderDetails).State = EntityState.Modified;
-                        db.SaveChanges();
+                        db.Entry(sale).State = EntityState.Modified;
+                        //db.SaveChanges();
                     }
 
                     db.Sales.Add(sale);

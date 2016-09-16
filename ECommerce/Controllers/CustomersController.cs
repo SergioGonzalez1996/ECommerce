@@ -154,10 +154,14 @@ namespace ECommerce.Controllers
             if (ModelState.IsValid)
             {
                 var db2 = new ECommerceContext();
-                var currentUser = db2.Users.Find(customer.UserName); // TODO: Check this !
+                var currentUser = db2.Customers.Find(customer.CustomerId); 
                 if (currentUser.UserName != customer.UserName)
                 {
-                    UsersHelper.UpdateUserName(currentUser.UserName, customer.UserName);
+                    //UsersHelper.UpdateUserName(currentUser.UserName, customer.UserName);
+                    ModelState.AddModelError(string.Empty, "You can not change the E-Mail right now.");
+                    ViewBag.CityId = new SelectList(CombosHelper.GetCities(customer.DepartmentId), "CityId", "Name", customer.CityId);
+                    ViewBag.DepartmentId = new SelectList(CombosHelper.GetDepartments(), "DepartmentId", "Name", customer.DepartmentId);
+                    return View(customer);
                 }
                 db2.Dispose();
 

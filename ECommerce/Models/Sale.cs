@@ -48,7 +48,7 @@ namespace ECommerce.Models
 
         public virtual Warehouse Warehouse { get; set; }
 
-        public virtual Order Order { get; set; }
+        //public virtual Order Order { get; set; }
 
         public virtual ICollection<SaleDetail> SaleDetails { get; set; }
     }
