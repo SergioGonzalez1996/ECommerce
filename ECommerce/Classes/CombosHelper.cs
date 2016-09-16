@@ -107,6 +107,12 @@ namespace ECommerce.Classes
             return products.OrderBy(p => p.Description).ToList();
         }
 
+        public static List<Order> GetOrders(int companyId)
+        {
+            var orders = db.Orders.Where(p => p.CompanyId == companyId).ToList();
+            return orders.OrderBy(o => o.OrderId).ToList();
+        }
+
 
         public void Dispose()
         {

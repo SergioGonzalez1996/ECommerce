@@ -1,19 +1,56 @@
-﻿using System.Data.Entity;
+﻿using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using ECommerce.Models;
-using PagedList;
 using ECommerce.Classes;
+using PagedList;
 using System;
 
 namespace ECommerce.Controllers
 {
     [Authorize(Roles = "User")]
 
-    public class PurchasesController : Controller
+    public class SalesController : Controller
     {
         private ECommerceContext db = new ECommerceContext();
+
+        [HttpPost]
+        public ActionResult FromOrder(AddFromOrder view)
+        {
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            if (ModelState.IsValid)
+            {
+                var response = MovementsHelper.SaleFromOrder(view.OrderId, User.Identity.Name);
+                if (response.Succeeded)
+                {
+                    var newView = new NewSaleView
+                    {
+                        OrderId = view.OrderId,
+                        CustomerId = response.CustomerId,
+                        Date = response.Date,
+                        Remarks = response.Remarks,
+                        Details = db.SaleDetailTmps.Where(sdt => sdt.UserName == User.Identity.Name).ToList(),
+                    };
+                    //return PartialView(newView);
+                    TempData["model"] = newView;
+                    return RedirectToAction("Create");
+                }
+                ModelState.AddModelError(string.Empty, response.Message);
+            }
+            ViewBag.OrderId = new SelectList(CombosHelper.GetOrders(user.CompanyId), "OrderId", "OrderId");
+            return PartialView();
+        }
+
+
+        public ActionResult FromOrder()
+        {
+            var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
+            ViewBag.OrderId = new SelectList(CombosHelper.GetOrders(user.CompanyId), "OrderId", "OrderId");
+            return PartialView();
+        }
+
 
         public ActionResult DeleteProduct(int? id)
         {
@@ -21,13 +58,13 @@ namespace ECommerce.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var PurchaseDetailTmp = db.PurchaseDetailTmps.Where(pdt => pdt.UserName == User.Identity.Name && pdt.ProductId == id).FirstOrDefault();
-            if (PurchaseDetailTmp == null)
+            var SaleDetailTmp = db.SaleDetailTmps.Where(pdt => pdt.UserName == User.Identity.Name && pdt.ProductId == id).FirstOrDefault();
+            if (SaleDetailTmp == null)
             {
-                return HttpNotFound();
+                return HttpNotFound(); 
             }
 
-            db.PurchaseDetailTmps.Remove(PurchaseDetailTmp);
+            db.SaleDetailTmps.Remove(SaleDetailTmp);
             var response = DBHelper.SaveChanges(db);
             if (!response.Succeeded)
             {
@@ -36,17 +73,18 @@ namespace ECommerce.Controllers
             return RedirectToAction("Create");
         }
 
+
         [HttpPost]
-        public ActionResult AddProduct(AddProductViewForPurchase view)
+        public ActionResult AddProduct(AddProductView view)
         {
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             if (ModelState.IsValid)
             {
-                var PurchaseDetailTmp = db.PurchaseDetailTmps.Where(pdt => pdt.UserName == User.Identity.Name && pdt.ProductId == view.ProductId).FirstOrDefault();
-                if (PurchaseDetailTmp == null)
+                var SaleDetailTmp = db.SaleDetailTmps.Where(sdt => sdt.UserName == User.Identity.Name && sdt.ProductId == view.ProductId).FirstOrDefault();
+                if (SaleDetailTmp == null)
                 {
                     var product = db.Products.Find(view.ProductId);
-                    PurchaseDetailTmp = new PurchaseDetailTmp
+                    SaleDetailTmp = new SaleDetailTmp
                     {
                         Description = product.Description,
                         Price = product.Price,
@@ -55,12 +93,12 @@ namespace ECommerce.Controllers
                         TaxRate = product.Tax.Rate,
                         UserName = User.Identity.Name,
                     };
-                    db.PurchaseDetailTmps.Add(PurchaseDetailTmp);
+                    db.SaleDetailTmps.Add(SaleDetailTmp);
                 }
                 else
                 {
-                    PurchaseDetailTmp.Quantity += view.Quantity;
-                    db.Entry(PurchaseDetailTmp).State = EntityState.Modified;
+                    SaleDetailTmp.Quantity += view.Quantity;
+                    db.Entry(SaleDetailTmp).State = EntityState.Modified;
                 }
                 try
                 {
@@ -72,8 +110,7 @@ namespace ECommerce.Controllers
                     ModelState.AddModelError(string.Empty, ex.Message);
                 }
             }
-
-            ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId, true), "ProductId", "Description");
+            ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId), "ProductId", "Description");
             return PartialView();
         }
 
@@ -82,140 +119,145 @@ namespace ECommerce.Controllers
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
             ViewBag.ProductId = new SelectList(CombosHelper.GetProducts(user.CompanyId, true), "ProductId", "Description");
             return PartialView();
-
         }
 
-        // GET: Purchases
+        // GET: Sales
         public ActionResult Index(int? page = null)
         {
             page = (page ?? 1);
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            var purchases = db.Purchases.Where(p => p.CompanyId == user.CompanyId).Include(p => p.Supplier).Include(p => p.State);
-            return View(purchases.OrderBy(p => p.Supplier.FirstName).ThenBy(p => p.Supplier.LastName).ToPagedList((int)page, 10));
+
+            var sales = db.Sales.Where(s => s.CompanyId == user.CompanyId).Include(s => s.Customer).Include(s => s.State);
+            return View(sales.OrderBy(s => s.Customer.FirstName).ThenBy(s => s.Customer.LastName).ToPagedList((int)page, 10));
         }
 
-        // GET: Purchases/Details/5
+        // GET: Sales/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var purchase = db.Purchases.Find(id);
-            if (purchase == null)
+            var sale = db.Sales.Find(id);
+            if (sale == null)
             {
                 return HttpNotFound();
             }
-            return View(purchase);
+            return View(sale);
         }
 
-        // GET: Purchases/Create
+        // GET: Sales/Create
         public ActionResult Create()
         {
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            ViewBag.SupplierId = new SelectList(CombosHelper.GetSuppliers(user.CompanyId), "SupplierId", "FullName");
-            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name");
-            var view = new NewPurchaseView  {
-                Date = DateTime.Now,
-                Details = db.PurchaseDetailTmps.Where(pdt => pdt.UserName == User.Identity.Name).ToList(),
-            };
+            NewSaleView view = (NewSaleView)TempData["model"];
+            if (view == null)
+            {
+                view = new NewSaleView
+                {
+                    Date = DateTime.Now,
+                    Details = db.SaleDetailTmps.Where(sdt => sdt.UserName == User.Identity.Name).ToList(),
+                };
+            }
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName", view.CustomerId);
+            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name", view.WarehouseId);
             return View(view);
         }
 
-        // POST: Purchases/Create
+        // POST: Sales/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(NewPurchaseView view)
+        public ActionResult Create(NewSaleView view)
         {
             if (ModelState.IsValid)
             {
-                var response = MovementsHelper.NewPurchase(view, User.Identity.Name);
+                var response = MovementsHelper.NewSale(view, User.Identity.Name);
                 if (response.Succeeded)
                 {
                     return RedirectToAction("Index");
                 }
                 ModelState.AddModelError(string.Empty, response.Message);
             }
+
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            ViewBag.SupplierId = new SelectList(CombosHelper.GetSuppliers(user.CompanyId), "SupplierId", "FullName");
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName");
             ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name");
-            view.Details = db.PurchaseDetailTmps.Where(pdt => pdt.UserName == User.Identity.Name).ToList();
+            view.Details = db.SaleDetailTmps.Where(sdt => sdt.UserName == User.Identity.Name).ToList();
             return View(view);
         }
 
-        // GET: Purchases/Edit/5
+        // GET: Sales/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var purchase = db.Purchases.Find(id);
-            if (purchase == null)
+            Sale sale = db.Sales.Find(id);
+            if (sale == null)
             {
                 return HttpNotFound();
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            ViewBag.SupplierId = new SelectList(CombosHelper.GetSuppliers(user.CompanyId), "SupplierId", "FullName", purchase.SupplierId);
-            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name", purchase.WarehouseId);
-            return View(purchase);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName", sale.CustomerId);
+            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name", sale.WarehouseId);
+            return View(sale);
         }
 
-        // POST: Purchases/Edit/5
+        // POST: Sales/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Purchase purchase)
+        public ActionResult Edit(Sale sale)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(purchase).State = EntityState.Modified;
+                db.Entry(sale).State = EntityState.Modified;
                 var response = DBHelper.SaveChanges(db);
                 if (response.Succeeded)
                 {
                     return RedirectToAction("Index");
                 }
                 ModelState.AddModelError(string.Empty, response.Message);
-
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            ViewBag.SupplierId = new SelectList(CombosHelper.GetSuppliers(user.CompanyId), "SupplierId", "FullName", purchase.SupplierId);
-            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name", purchase.WarehouseId);
-            return View(purchase);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName", sale.CustomerId);
+            ViewBag.WarehouseId = new SelectList(CombosHelper.GetWarehouses(user.CompanyId), "WarehouseId", "Name", sale.WarehouseId);
+            return View(sale);
         }
 
-        // GET: Purchases/Delete/5
+        // GET: Sales/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var purchase = db.Purchases.Find(id);
-            if (purchase == null)
+            var sale = db.Sales.Find(id);
+            if (sale == null)
             {
                 return HttpNotFound();
             }
-            return View(purchase);
+            return View(sale);
         }
 
-        // POST: Purchases/Delete/5
+        // POST: Sales/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            var purchase = db.Purchases.Find(id);
-            db.Purchases.Remove(purchase);
+            var sale = db.Sales.Find(id);
+            db.Sales.Remove(sale);
             var response = DBHelper.SaveChanges(db);
             if (response.Succeeded)
             {
                 return RedirectToAction("Index");
             }
             ModelState.AddModelError(string.Empty, response.Message);
-            return View(purchase);
+            return View(sale);
         }
 
         protected override void Dispose(bool disposing)

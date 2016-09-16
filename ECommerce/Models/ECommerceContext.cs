@@ -55,5 +55,11 @@ namespace ECommerce.Models
         public DbSet<PurchaseDetail> PurchaseDetails { get; set; }
 
         public DbSet<PurchaseDetailTmp> PurchaseDetailTmps { get; set; }
+
+        public DbSet<Sale> Sales { get; set; }
+
+        public DbSet<SaleDetail> SaleDetails { get; set; }
+
+        public DbSet<SaleDetailTmp> SaleDetailTmps { get; set; }
     }
 }

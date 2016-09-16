@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace ECommerce.Models
 {
-    public class Order
+    public class NewSaleView
     {
-        [Key]
-        public int OrderId { get; set; }
-
-        [Required(ErrorMessage = "The field {0} is required")]
-        [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
-        [Display(Name = "Company")]
-        public int CompanyId { get; set; }
-
         [Required(ErrorMessage = "The field {0} is required")]
         [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
         [Display(Name = "Customer")]
@@ -21,8 +14,8 @@ namespace ECommerce.Models
 
         [Required(ErrorMessage = "The field {0} is required")]
         [Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
-        [Display(Name = "State")]
-        public int StateId { get; set; }
+        [Display(Name = "Warehouse")]
+        public int WarehouseId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
@@ -31,14 +24,16 @@ namespace ECommerce.Models
         [DataType(DataType.MultilineText)]
         public string Remarks { get; set; }
 
-        public virtual Customer Customer { get; set; }
+        //[Range(1, double.MaxValue, ErrorMessage = "You must select a {0}")]
+        [Display(Name = "Order")]
+        public int OrderId { get; set; }
 
-        public virtual State State { get; set; }
+        public List<SaleDetailTmp> Details { get; set; }
 
-        public virtual Company Company { get; set; }
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = false)]
+        public double TotalQuantity { get { return Details == null ? 0 : Details.Sum(d => d.Quantity); } }
 
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-
-        public virtual ICollection<Sale> Sales { get; set; }
+        [DisplayFormat(DataFormatString = "{0:C2}", ApplyFormatInEditMode = false)]
+        public decimal TotalValue { get { return Details == null ? 0 : Details.Sum(d => d.Value); } }
     }
 }

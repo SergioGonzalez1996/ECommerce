@@ -51,5 +51,7 @@ namespace ECommerce.Models
         public virtual ICollection<Inventory> Inventories { get; set; }
 
         public virtual ICollection<Purchase> Purchases { get; set; }
+
+        public virtual ICollection<Sale> Sales { get; set; }
     }
 }

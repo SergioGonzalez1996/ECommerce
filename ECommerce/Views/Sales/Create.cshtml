@@ -1,28 +1,28 @@
-﻿@model ECommerce.Models.NewPurchaseView
+﻿@model ECommerce.Models.NewSaleView
 
 @{
-    ViewBag.Title = "New Purchase";
+    ViewBag.Title = "New Sale";
 }
 
-<h2>New Purchase</h2>
-
+<h2>New Sale</h2>
 
 @using (Html.BeginForm()) 
 {
     @Html.AntiForgeryToken()
-    
+
     <div class="form-horizontal">
-        <h4>Purchase</h4>
+        <h4>Sale</h4>
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.OrderId)
 
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    @Html.LabelFor(model => model.SupplierId, htmlAttributes: new { @class = "control-label col-md-2" })
+                    @Html.LabelFor(model => model.CustomerId, htmlAttributes: new { @class = "control-label col-md-2" })
                     <div class="col-md-10">
-                        @Html.DropDownList("SupplierId", null, htmlAttributes: new { @class = "form-control" })
-                        @Html.ValidationMessageFor(model => model.SupplierId, "", new { @class = "text-danger" })
+                        @Html.DropDownList("CustomerId", null, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.CustomerId, "", new { @class = "text-danger" })
                     </div>
                 </div>
 
@@ -50,21 +50,23 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.Remarks, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.Remarks, new { htmlAttributes = new { @class = "form-control" } })
-                            @Html.ValidationMessageFor(model => model.Remarks, "", new { @class = "text-danger" })
-                        </div>
+                    @Html.LabelFor(model => model.Remarks, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Remarks, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Remarks, "", new { @class = "text-danger" })
                     </div>
+                </div>
+
+                <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <input type="submit" value="Save Purchase" class="btn btn-primary" />
-                        @Html.ActionLink("Add Product", "AddProduct", "Purchases", new { }, new { @class = "dialog-window btn btn-warning" })
-                        @Html.ActionLink("Back to Purchases", "Index", new { }, new { @class = "btn btn-success" })
+                        <input type="submit" value="Save Sale" class="btn btn-primary" />
+                        @Html.ActionLink("Add Product", "AddProduct", "Sales", new { }, new { @class = "dialog-window btn btn-info" })
+                        @Html.ActionLink("From Order", "FromOrder", "Sales", new { }, new { @class = "dialog-window btn btn-warning" })
+                        @Html.ActionLink("Back to sales", "Index", new { }, new { @class = "btn btn-success" })
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
     </div>
 }
 
@@ -103,14 +105,7 @@ else
         {
             <tr>
                 <td>
-                    @if (!string.IsNullOrEmpty(item.Product.Image))
-                    {
-                        <img src="@Url.Content(item.Product.Image)" alt="Image" style="width:100px;height:100px;max-width: 100%; height: auto;" />
-                    }
-                    else
-                    {
-                        <img src="@Url.Content("~/Content/Products/0.png")" alt="Image" style="width:100px;height:100px;max-width: 100%; height: auto;" />
-                    }
+                    <img src="@Url.Content(String.Format("~/Content/Products/{0}.jpg",item.ProductId))" alt="Image" style="width:100px;height:100px;max-width: 100%; height: auto;" />
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Description)
@@ -149,9 +144,6 @@ else
     </table>
 }
 
-
-
-
 <div class="modal fade" id="AddProduct" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -163,6 +155,19 @@ else
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="FromOrder" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h2 class="modal-title"></h2>
+            </div>
+            <div class="modal-body"><div class="te">Please wait...</div></div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

@@ -2,13 +2,13 @@
 
 namespace ECommerce.Models
 {
-    public class PurchaseDetail
+    public class SaleDetail
     {
         [Key]
-        public int PurchaseDetailId { get; set; }
+        public int SaleDetailId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
-        public int PurchaseId { get; set; }
+        public int SaleId { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
         public int ProductId { get; set; }
@@ -34,7 +34,7 @@ namespace ECommerce.Models
         [Range(0, double.MaxValue, ErrorMessage = "You must enter values in {0} between {1} and {2}")]
         public double Quantity { get; set; }
 
-        public virtual Purchase Purchase { get; set; }
+        public virtual Sale Sale { get; set; }
 
         public virtual Product Product { get; set; }
     }

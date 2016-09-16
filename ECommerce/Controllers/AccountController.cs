@@ -410,6 +410,7 @@ namespace ECommerce.Controllers
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             Session["Logo"] = null;
+            Session["SaleOrder"] = null;
             return RedirectToAction("Index", "Home");
 
         }

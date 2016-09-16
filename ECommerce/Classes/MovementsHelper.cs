@@ -1,9 +1,7 @@
 ﻿using ECommerce.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
 
 namespace ECommerce.Classes
 {
@@ -54,7 +52,18 @@ namespace ECommerce.Classes
                 catch (Exception ex)
                 {
                     transaccion.Rollback();
-                    return new Response { Succeeded = false, Message = ex.Message };
+                    if (ex.InnerException != null && ex.InnerException.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.InnerException.Message };
+                    }
+                    else if (ex.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.Message };
+                    }
+                    else
+                    {
+                        return new Response { Succeeded = false, Message = ex.Message };
+                    }
                 }
             }
         }
@@ -99,7 +108,6 @@ namespace ECommerce.Classes
                         var inventory = db.Inventories.Where(i => i.WarehouseId == view.WarehouseId && i.ProductId == detail.ProductId).FirstOrDefault();
                         if (inventory == null)
                         {
-                            //var product = db.Products.Find(view.ProductId);
                             inventory = new Inventory
                             {
                                 WarehouseId = view.WarehouseId,
@@ -122,14 +130,175 @@ namespace ECommerce.Classes
                 catch (Exception ex)
                 {
                     transaccion.Rollback();
-                    return new Response { Succeeded = false, Message = ex.Message };
+                    if (ex.InnerException != null && ex.InnerException.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.InnerException.Message };
+                    }
+                    else if (ex.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.Message };
+                    }
+                    else
+                    {
+                        return new Response { Succeeded = false, Message = ex.Message };
+                    }
                 }
             }
         }
 
+        public static Response NewSale(NewSaleView view, string userName)
+        {
+            using (var transaccion = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = db.Users.Where(u => u.UserName == userName).FirstOrDefault();
+                    var sale = new Sale
+                    {
+                        CompanyId = user.CompanyId,
+                        CustomerId = view.CustomerId,
+                        Date = view.Date,
+                        Remarks = view.Remarks,
+                        StateId = DBHelper.GetState("Created", db),
+                        WarehouseId = view.WarehouseId,
+                        
+                    };
+
+                    if (view.OrderId > 0)
+                    {
+                        var orderDetails = db.Orders.Where(o => o.OrderId == view.OrderId).FirstOrDefault();
+                        if (orderDetails == null)
+                        {
+                            transaccion.Rollback();
+                            return new Response { Succeeded = false, Message = "Can not get the details of this order." };
+                        }
+                        sale.OrderId = view.OrderId;
+                        sale.StateId = DBHelper.GetState("Invoiced", db);
+                        orderDetails.StateId = DBHelper.GetState("Invoiced", db);
+                        db.Entry(orderDetails).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+
+                    db.Sales.Add(sale);
+                    db.SaveChanges();
+
+                    var details = db.SaleDetailTmps.Where(sdt => sdt.UserName == userName).ToList();
+
+                    foreach (var detail in details)
+                    {
+                        var saleDetail = new SaleDetail
+                        {
+                            Description = detail.Description,
+                            SaleId = sale.SaleId,
+                            Price = detail.Price,
+                            ProductId = detail.ProductId,
+                            Quantity = detail.Quantity,
+                            TaxRate = detail.TaxRate,
+                        };
+                        db.SaleDetails.Add(saleDetail);
+                        db.SaleDetailTmps.Remove(detail);
 
 
+                        var inventory = db.Inventories.Where(i => i.WarehouseId == view.WarehouseId && i.ProductId == detail.ProductId).FirstOrDefault();
+                        if (inventory == null)
+                        {
+                            inventory = new Inventory
+                            {
+                                WarehouseId = view.WarehouseId,
+                                ProductId = detail.ProductId,
+                                Stock = detail.Quantity,
+                            };
+                            db.Inventories.Add(inventory);
+                        }
+                        else
+                        {
+                            inventory.Stock = inventory.Stock - detail.Quantity;
+                            db.Entry(inventory).State = EntityState.Modified;
+                        }
+                        db.SaveChanges();
+                    }
+                    db.SaveChanges();
+                    transaccion.Commit();
+                    return new Response { Succeeded = true };
+                }
+                catch (Exception ex)
+                {
+                    transaccion.Rollback();
+                    if (ex.InnerException != null && ex.InnerException.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.InnerException.Message };
+                    }
+                    else if (ex.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.Message };
+                    }
+                    else
+                    {
+                        return new Response { Succeeded = false, Message = ex.Message };
+                    }
+                }
+            }
+        }
 
+        public static Response SaleFromOrder(int orderId, string userName)
+        {
+            using (var transaccion = db.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = db.Users.Where(u => u.UserName == userName).FirstOrDefault();
+                    var details = db.OrderDetails.Where(od => od.OrderId == orderId).ToList();
+                    var orderDetails = db.Orders.Where(o => o.OrderId == orderId).FirstOrDefault();
+                    if (details == null || details.Count == 0 || orderDetails == null)
+                    {
+                        return new Response { Succeeded = false, Message = "Can not get the details of this order." };
+                    }
+
+                    // If user has temp details, delete them
+                    var userOldDetails = db.SaleDetailTmps.Where(sdt => sdt.UserName == userName).ToList();
+                    foreach (var oldDetails in userOldDetails)
+                    {
+                        db.SaleDetailTmps.Remove(oldDetails);
+                    }
+                    // NOTE: This could be unnecessary
+
+                    foreach (var detail in details)
+                    {
+                        var saleDetailTmp = new SaleDetailTmp
+                        {
+                            Description = detail.Description,
+                            Price = detail.Price,
+                            ProductId = detail.ProductId,
+                            Quantity = detail.Quantity,
+                            TaxRate = detail.TaxRate,
+                            UserName = userName,
+                            OrderId = orderId,
+                        };
+                        db.SaleDetailTmps.Add(saleDetailTmp);
+                    }
+
+                    db.SaveChanges();
+                    transaccion.Commit();
+                    return new Response { Succeeded = true, CustomerId = orderDetails.CustomerId, Date = orderDetails.Date, Remarks = orderDetails.Remarks };
+                }
+                catch (Exception ex)
+                {
+                    transaccion.Rollback();
+                    if (ex.InnerException != null && ex.InnerException.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.InnerException.Message };
+                    }
+                    else if (ex.InnerException != null)
+                    {
+                        return new Response { Succeeded = false, Message = ex.InnerException.Message };
+                    }
+                    else
+                    {
+                        return new Response { Succeeded = false, Message = ex.Message };
+                    }
+                }
+            }
+        }
 
         public void Dispose()
         {

@@ -231,6 +231,7 @@
     <Compile Include="Controllers\OrdersController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\PurchasesController.cs" />
+    <Compile Include="Controllers\SalesController.cs" />
     <Compile Include="Controllers\StatesController.cs" />
     <Compile Include="Controllers\SuppliersController.cs" />
     <Compile Include="Controllers\TaxesController.cs" />
@@ -241,8 +242,10 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\AddFromOrder.cs" />
     <Compile Include="Models\AddProductView.cs" />
     <Compile Include="Models\AddProductViewForPurchase.cs" />
+    <Compile Include="Models\AddProductViewForSale.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\City.cs" />
     <Compile Include="Models\Company.cs" />
@@ -256,6 +259,7 @@
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\NewOrderView.cs" />
     <Compile Include="Models\NewPurchaseView.cs" />
+    <Compile Include="Models\NewSaleView.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\OrderDetail.cs" />
     <Compile Include="Models\OrderDetailTmp.cs" />
@@ -264,6 +268,9 @@
     <Compile Include="Models\PurchaseDetail.cs" />
     <Compile Include="Models\PurchaseDetailTmp.cs" />
     <Compile Include="Models\Response.cs" />
+    <Compile Include="Models\Sale.cs" />
+    <Compile Include="Models\SaleDetail.cs" />
+    <Compile Include="Models\SaleDetailTmp.cs" />
     <Compile Include="Models\State.cs" />
     <Compile Include="Models\Supplier.cs" />
     <Compile Include="Models\Tax.cs" />
@@ -410,6 +417,13 @@
     <Content Include="Views\Purchases\Edit.cshtml" />
     <Content Include="Views\Purchases\Index.cshtml" />
     <Content Include="Views\Purchases\AddProduct.cshtml" />
+    <Content Include="Views\Sales\Create.cshtml" />
+    <Content Include="Views\Sales\Delete.cshtml" />
+    <Content Include="Views\Sales\Details.cshtml" />
+    <Content Include="Views\Sales\Edit.cshtml" />
+    <Content Include="Views\Sales\Index.cshtml" />
+    <Content Include="Views\Sales\AddProduct.cshtml" />
+    <Content Include="Views\Sales\FromOrder.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

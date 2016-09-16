@@ -28,7 +28,12 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Date, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.Date, new { htmlAttributes = new { @class = "form-control" } })
+                <div class='input-group date' id='datepicker' style="width:280px">
+                    @Html.EditorFor(model => model.Date, new { htmlAttributes = new { @class = "form-control" } })
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
                 @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -52,4 +57,9 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        $(function () {
+            $('#datepicker').datetimepicker({ format: 'YYYY/MM/DD' });
+        });
+    </script>
 }

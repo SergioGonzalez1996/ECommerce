@@ -29,13 +29,10 @@ namespace ECommerce.Controllers
             }
 
             db.OrderDetailTmps.Remove(OrderDetailTmp);
-            try
+            var response = DBHelper.SaveChanges(db);
+            if (!response.Succeeded)
             {
-                db.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, response.Message);
             }
             return RedirectToAction("Create");
         }
@@ -96,10 +93,6 @@ namespace ECommerce.Controllers
         {
             page = (page ?? 1);
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            if (user == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
             var orders = db.Orders.Where(o => o.CompanyId == user.CompanyId).Include(o => o.Customer).Include(o => o.State);
             return View(orders.OrderBy(o => o.Customer.FirstName).ThenBy(o => o.Customer.LastName).ToPagedList((int)page, 10));
         }
@@ -148,10 +141,6 @@ namespace ECommerce.Controllers
                 ModelState.AddModelError(string.Empty, response.Message);  
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            if (user == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
             ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName");
             view.Details = db.OrderDetailTmps.Where(odt => odt.UserName == User.Identity.Name).ToList();
             return View(view);
@@ -196,11 +185,7 @@ namespace ECommerce.Controllers
                 ModelState.AddModelError(string.Empty, response.Message);
             }
             var user = db.Users.Where(u => u.UserName == User.Identity.Name).FirstOrDefault();
-            if (user == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "UserName", order.CustomerId);
+            ViewBag.CustomerId = new SelectList(CombosHelper.GetCustomers(user.CompanyId), "CustomerId", "FullName", order.CustomerId);
             return View(order);
         }
 
